@@ -3,6 +3,7 @@
 #include <WiFi.h>
 #include "secrets.h"
 #include "src/ApiClient.h"
+#include <String.h>
 
 
 
@@ -10,6 +11,7 @@
 int loadingstep=0;
 
 ApiClient* apiClient;
+
 
 //display connection animation
 //display task and comment below
@@ -80,11 +82,15 @@ void setup() {
   Heltec.display->display();
 
   WiFiClient wifiClient;
-  apiClient = new ApiClient();
-  //Serial.println(apiClient->connect("https://api.spotify.com"));
+  const char* host = "api.spotify.com";
+  apiClient = new ApiClient(&wifiClient);
+  Serial.println(apiClient->connect(host));
+
+  Serial.println(apiClient->isConnected());
+  apiClient->disconnet();
+  Serial.println(apiClient->isConnected());
 }
 
 void loop() {
   
 }
-

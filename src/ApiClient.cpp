@@ -1,7 +1,12 @@
 #include "ApiClient.h"
 ApiClient::ApiClient() {}
-ApiClient::ApiClient(WiFiClient*){}
-ApiClient::ApiClient(WiFiClient*, const char*){}
+ApiClient::ApiClient(WiFiClient* wifiClient){
+	this->client = wifiClient;
+}
+ApiClient::ApiClient(WiFiClient* wifiClient, const char* urlOrIP){
+	this->client = wifiClient;
+	this->connect(urlOrIP);
+}
 
 int ApiClient::GET(const char*){}
 int ApiClient::POST(const char*, DynamicJsonDocument*){}
@@ -13,8 +18,25 @@ void ApiClient::setAuthentication(const char*){}
 DynamicJsonDocument* ApiClient::getData(){}
 void ApiClient::clear(){}
 
-void ApiClient::connect(const char*){}
-void ApiClient::disconnet(){}
-void ApiClient::isConnected(){}
+/*###########################################
+SUCCESS 1
+TIMED_OUT -1
+INVALID_SERVER -2
+TRUNCATED -3
+INVALID_RESPONSE -4 
+############################################*/
+int ApiClient::connect(const char* urlOrIP){
+	return this->client->connect(this->urlOrIP->c_str(), 80);
+}
+void ApiClient::disconnet(){
+	this->client->stop();
+}
 
-ApiClient::~ApiClient(){}
+bool ApiClient::isConnected(){
+	return this->client->connected();
+}
+
+
+ApiClient::~ApiClient(){
+
+}

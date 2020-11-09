@@ -23,9 +23,9 @@ class ApiClient{
 	DynamicJsonDocument* getData();
 	void clear();
 
-	void connect(const char*);
+	int connect(const char* urlOrIP);
 	void disconnet();
-	void isConnected();
+	bool isConnected();
 	
 	~ApiClient();
 };
