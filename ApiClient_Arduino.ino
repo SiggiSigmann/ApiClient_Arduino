@@ -2,6 +2,8 @@
 #include "heltec.h"
 #include <WiFi.h>
 #include "secrets.h"
+#include "src/ApiClient.h"
+
 
 //counter for connectiong animation
 int loadingstep=0;
