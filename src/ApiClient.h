@@ -6,20 +6,21 @@ class ApiClient{
     
   public:
     ApiClient(const char*);
+	ApiClient(Client*);
 
 	int GET(const char*);
-	int POST(const char*, ArduinoJson);
-	int PUT(const char*, ArduinoJson);
+	int POST(const char*, DynamicJsonDocument*);
+	int PUT(const char*, DynamicJsonDocument*);
 	int DELETE(const char*);
-	int PATCH(const char*, ArduinoJson);
+	int PATCH(const char*, DynamicJsonDocument*);
 
-	ArduinoJson getData();
+	DynamicJsonDocument getData();
 
 	void setAuthentication(const char*);
 
 
 	void clear();
-	void connected();
+	void isConnected();
 	void disconnet();
 
 	~ApiClient();
