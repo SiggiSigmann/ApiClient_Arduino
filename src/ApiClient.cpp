@@ -1,54 +1,20 @@
 #include "ApiClient.h"
-#include <ArduinoJson.h>
+ApiClient::ApiClient() {}
+ApiClient::ApiClient(WiFiClient*){}
+ApiClient::ApiClient(WiFiClient*, const char*){}
 
-ApiClient::ApiClient(const char* ipAddress){
+int ApiClient::GET(const char*){}
+int ApiClient::POST(const char*, DynamicJsonDocument*){}
+int ApiClient::PUT(const char*, DynamicJsonDocument*){}
+int ApiClient::DELETE(const char*){}
+int ApiClient::PATCH(const char*, DynamicJsonDocument*){}
 
-}
+void ApiClient::setAuthentication(const char*){}
+DynamicJsonDocument* ApiClient::getData(){}
+void ApiClient::clear(){}
 
-ApiClient::ApiClient(Client* client){
+void ApiClient::connect(const char*){}
+void ApiClient::disconnet(){}
+void ApiClient::isConnected(){}
 
-}
-
-int ApiClient::GET(const char* apiLink){
-
-}
-
-int ApiClient::POST(const char* apiLink, DynamicJsonDocument* payload){
-
-}
-
-int ApiClient::PUT(const char* apiLink, DynamicJsonDocument* payload){
-
-}
-
-int ApiClient::DELETE(const char* apiLink){
-
-}
-
-int ApiClient::PATCH(const char* apiLink, DynamicJsonDocument* payload){
-
-}
-
-DynamicJsonDocument ApiClient::getData(){
-
-}
-
-void ApiClient::setAuthentication(const char* secrete){
-
-}
-
-void ApiClient::clear(){
-
-}
-
-void ApiClient::isConnected(){
-
-}
-
-void ApiClient::disconnet(){
-
-}
-
-ApiClient::~ApiClient(){
-
-}
+ApiClient::~ApiClient(){}

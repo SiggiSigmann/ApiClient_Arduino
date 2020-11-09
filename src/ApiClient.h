@@ -1,12 +1,17 @@
-#include <Client.h>
+#include "heltec.h"
 #include <ArduinoJson.h>
+#include <Wifi.h>
+#include <client.h>
+
 
 class ApiClient{
   private:
+	Client* client;
     
   public:
-    ApiClient(const char*);
-	ApiClient(Client*);
+  	ApiClient();
+	ApiClient(WiFiClient*);
+	ApiClient(WiFiClient*, const char*);
 
 	int GET(const char*);
 	int POST(const char*, DynamicJsonDocument*);
@@ -14,15 +19,13 @@ class ApiClient{
 	int DELETE(const char*);
 	int PATCH(const char*, DynamicJsonDocument*);
 
-	DynamicJsonDocument getData();
-
 	void setAuthentication(const char*);
-
-
+	DynamicJsonDocument* getData();
 	void clear();
-	void isConnected();
+
+	void connect(const char*);
 	void disconnet();
-
+	void isConnected();
+	
 	~ApiClient();
-
 };
