@@ -7,9 +7,9 @@
 class ApiClient{
   private:
 	Client* client;
+	DynamicJsonDocument* data;
     
   public:
-  	ApiClient();
 	ApiClient(WiFiClient*);
 	ApiClient(WiFiClient*, const char*);
 
