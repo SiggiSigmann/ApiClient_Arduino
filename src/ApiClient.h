@@ -10,6 +10,8 @@ class ApiClient{
 	DynamicJsonDocument* data = NULL;
 	String* host = NULL;
 	String* authToken = NULL;
+
+	void parseResult();
     
   public:
 	ApiClient(WiFiClient*);
@@ -17,6 +19,7 @@ class ApiClient{
 
 	int GET(const char*);
 	int POST(const char*, DynamicJsonDocument*);
+	int POST(const char*, String);
 	int PUT(const char*, DynamicJsonDocument*);
 	int DELETE(const char*);
 	int PATCH(const char*, DynamicJsonDocument*);
@@ -26,6 +29,7 @@ class ApiClient{
 	void clear();
 
 	int connect(const char* urlOrIP);
+	int connect(const char* urlOrIP, const int port);
 	void disconnet();
 	bool isConnected();
 	
