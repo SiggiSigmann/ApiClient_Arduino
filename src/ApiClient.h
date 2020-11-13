@@ -6,8 +6,10 @@
 
 class ApiClient{
   private:
-	Client* client;
-	DynamicJsonDocument* data;
+	Client* client = NULL;
+	DynamicJsonDocument* data = NULL;
+	String* host = NULL;
+	String* authToken = NULL;
     
   public:
 	ApiClient(WiFiClient*);
