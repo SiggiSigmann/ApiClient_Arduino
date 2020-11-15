@@ -3,82 +3,114 @@
 ApiClient::ApiClient(WiFiClient* wifiClient){
 	this->client = wifiClient;
 }
-ApiClient::ApiClient(WiFiClient* wifiClient, const char* urlOrIP){
+ApiClient::ApiClient(WiFiClient* wifiClient, String urlOrIP){
 	this->client = wifiClient;
 	this->connect(urlOrIP);
 }
 
 //todo errorhandling
-void ApiClient::parseResult(){
+int ApiClient::parseResult(){
+	Serial.println("parseResult");
 	if(this->data){
 		delete this->data;
+		Serial.println("renew data");
 	}
 	this->data = new DynamicJsonDocument(2048);
 
-	String resp;
-	char c;
-	bool isBody=false;
-	while(this->client->available()) {	
-    	c = this->client->read();
-		
-		if (c == '{' || c == '[') {
-			isBody = true;
-			}
-			if (isBody) {
-				resp += c;
-				Serial.print(c);
-			} else {
-				Serial.print(c);
-			}
-  	}
+	uint16_t bufLen = 1024;
+	unsigned char buf[bufLen];
+	boolean isBody = false;
+	char c = ' ';
+	String resp; 
 
+	uint16_t size = 0;
+	// while(client.connected()) {
+	uint16_t httpCode = 0;
+	Serial.println("startpars");
+	while(this->client->available()) {
+		while((size = this->client->available()) > 0) {
+			if (isBody) {
+				uint16_t len = min(bufLen, size);
+				c = this->client->readBytes(buf, len);
+				for (uint16_t i = 0; i < len; i++) {
+					resp += (char)buf[i];
+				}
+			} else {
+				String line = this->client->readStringUntil('\r');
+				Serial.println(line);
+				if (line.startsWith("HTTP/1.")) {
+					httpCode = line.substring(9, line.indexOf(' ', 9)).toInt();
+					Serial.printf("HTTP Code: %d\n", httpCode); 
+				}
+				if (line == "\r" || line == "\n" || line == "") {
+					Serial.println("Body starts now");
+					isBody = true;
+				}
+			}
+		}
+	}
+
+	if (httpCode == 204) {
+		//no resource found
+		
+		return 204;
+	}
+
+	Serial.println(resp);
 	// Parse JSON object
 	DeserializationError error = deserializeJson(*this->data, resp);
 	if (error) {
 		Serial.print(F("deserializeJson() failed: "));
 		Serial.println(error.f_str());
 	}
-	
+	return 200;
 }
-//untested
-int ApiClient::GET(const char* url){
+
+int ApiClient::GET(String url){
 	String request= String("GET ") + url + " HTTP/1.1\n" +
-					"Host: " + *this->host + "\r\n" +
-					(this->authToken? ("Authorization: Basic " + *this->authToken + "\n" ):"")+
-					"Cache-Control: no-cache\n" +
-					"Content-Type: application/json\n" + 
+					"Host: " + *this->host + "\n" +
+					(this->authToken? ("Authorization: " + *this->authToken + "\n" ):"")+
+					"Content-Length: 0\n" +
 					"Connection: close\n\n" ;
-	//Serial.println(request);
+	Serial.println(request);
+	this->client->println(request);
+	
+	while(!this->client->available()) {	
+    	delay(10);
+  	}
+	Serial.println("ansere");
+
+	this->parseResult();
+
 	return 0;
-	//this->client->println(request);
 }
+/*
 //untested
-int ApiClient::POST(const char* url, DynamicJsonDocument* payload){
+int ApiClient::POST(String url, DynamicJsonDocument* payload){
 	String strPayload;
 	serializeJson(*payload, strPayload);
 	String request= String("POST ") + url + " HTTP/1.1\n" +
 					"Host: " + *this->host + "\r\n" +
-					(this->authToken? ("Authorization: Basic " + *this->authToken + "\n" ):"")+
+					(this->authToken? ("Authorization:" + *this->authToken + "\n" ):"")+
 					"Cache-Control: no-cache\n" +
 					"Content-Type: application/json\n" + 
 					strPayload + "\n" +
 					"Connection: close\n\n" ;
 	Serial.println(request);
 	return 0;
-}
+}*/
 
 //todo: errorhandling
-int ApiClient::POST(const char* url, String payload){
+int ApiClient::POST(String url, String payload){
 	String request= String("POST ") + url + " HTTP/1.1\n"
 					+ "Host: " + *this->host + "\n"
-					+ (this->authToken? ("Authorization: Basic " + *this->authToken + "\n" ):"")
-					+ "Cache-Control: no-cache\n"
+					+ (this->authToken? ("Authorization: " + *this->authToken + "\n" ):"")
 					+ "Content-Length: " + String(payload.length()) + "\n"
 					+ "Content-Type: application/x-www-form-urlencoded\n"
 					+ "Connection: close\n\n" 
 					+ payload;
 	this->client->print(request);
-
+	Serial.println(request);
 	//wait vor answere
 	while(!this->client->available()) {	
     	delay(10);
@@ -88,13 +120,15 @@ int ApiClient::POST(const char* url, String payload){
 
 	return 0;
 }
+
+/*
 //untested
-int ApiClient::PUT(const char* url, DynamicJsonDocument* payload){
+int ApiClient::PUT(String url, DynamicJsonDocument* payload){
 	String strPayload;
 	serializeJson(*payload, strPayload);
 	String request= String("PUT ") + url + " HTTP/1.1\n" +
 					"Host: " + *this->host + "\r\n" +
-					(this->authToken? ("Authorization: Basic " + *this->authToken + "\n" ):"")+
+					(this->authToken? ("Authorization: " + *this->authToken + "\n" ):"")+
 					"Cache-Control: no-cache\n" +
 					"Content-Type: application/json\n" + 
 					strPayload + "\n" +
@@ -103,7 +137,7 @@ int ApiClient::PUT(const char* url, DynamicJsonDocument* payload){
 	return 0;
 }
 //untested
-int ApiClient::DELETE(const char* url){
+int ApiClient::DELETE(String url){
 	String request= String("DELETE ") + url + " HTTP/1.1\n" +
 					"Host: " + *this->host + "\r\n" +
 					(this->authToken? ("Authorization: Basic " + *this->authToken + "\n" ):"")+
@@ -113,7 +147,7 @@ int ApiClient::DELETE(const char* url){
 	return 0;
 }
 //untested
-int ApiClient::PATCH(const char* url, DynamicJsonDocument* payload){
+int ApiClient::PATCH(String url, DynamicJsonDocument* payload){
 	String strPayload;
 	serializeJson(*payload, strPayload);
 	String request= String("PUT ") + url + " HTTP/1.1\n" +
@@ -125,13 +159,12 @@ int ApiClient::PATCH(const char* url, DynamicJsonDocument* payload){
 					"Connection: close\n\n" ;
 	Serial.println(request);
 	return 0;
-}
+}*/
 
 
-void ApiClient::setAuthentication(const char* token){
+void ApiClient::setAuthentication(String token){
 
 	if(this->authToken){
-		Serial.println("error");
 		delete this->authToken;
 	}
 	this->authToken = new String(token);
@@ -140,7 +173,7 @@ void ApiClient::setAuthentication(const char* token){
 /*###########################################
 return data
 ############################################*/
-//untested
+
 DynamicJsonDocument* ApiClient::getData(){
 	return this->data;
 }
@@ -149,11 +182,12 @@ DynamicJsonDocument* ApiClient::getData(){
 delete data from last query
 ############################################*/
 //untested
+/*
 void ApiClient::clear(){
 	if(this->data){
 		delete this->data;
 	}
-}
+}*/
 
 /*###########################################
 connect to API server
@@ -163,21 +197,22 @@ INVALID_SERVER -2
 TRUNCATED -3
 INVALID_RESPONSE -4 
 ############################################*/
-int ApiClient::connect(const char* urlOrIP){
+int ApiClient::connect(String urlOrIP){
 	if(this->host){
 		delete this->host;
 	}
 	this->host = new String(urlOrIP);
-	return this->client->connect(urlOrIP, 80);
+	return this->client->connect(urlOrIP.c_str(), 80);
 }
 
-int ApiClient::connect(const char* urlOrIP, const int port){
+int ApiClient::connect(String urlOrIP, const int port){
 	if(this->host){
 		delete this->host;
 	}
 	this->host = new String(urlOrIP);
-	return this->client->connect(urlOrIP, port);
+	return this->client->connect(urlOrIP.c_str(), port);
 }
+
 /*###########################################
 disconect from API server
 ############################################*/
